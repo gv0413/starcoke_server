@@ -12,6 +12,7 @@ const methodOverride = require('method-override')
 const initializePassport =  require('./passport-config')
 const jwt = require('jsonwebtoken');
 const { getConfigByIdAndName } = require('./config')
+const { checkUserExistByEmail, users } = require('./user')
 initializePassport(
   passport, 
   email => users.find(user => user.email === email),
@@ -29,11 +30,18 @@ app.use(passport.initialize())
 app.use(passport.session())
 app.use(methodOverride('_method'))
 
-let users = [];
 
 app.post('/register', async (req, res)=> {
   try{
-    const hashedPassword = await bcrypt.hash(req.body.password, 10)
+    const duplicatedEmail = checkUserExistByEmail(req.body.email);
+    if (duplicatedEmail) {
+      res.status(400)
+         .send({
+           res: false,
+           data: 'Eamil already exist.',
+         })
+    }
+    const hashedPassword = await bcrypt.hash(req.body.password, 10);
     users.push({
       id: users.length,
       name: req.body.name,
@@ -72,6 +80,7 @@ app.post('/login', async (req, res)=> {
           jwtToken: token,
         },
       })
+      console.log(`current User Index = ${user.id} userAddress = ${userConfig.walletAddress.user}`)
     } catch (e) {
       res.status(400)
         .send(e)

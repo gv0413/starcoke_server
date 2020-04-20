@@ -11,8 +11,10 @@ const session = require('express-session')
 const methodOverride = require('method-override')
 const initializePassport =  require('./passport-config')
 const jwt = require('jsonwebtoken');
-const { getConfigByIdAndName } = require('./config')
+const { getConfigByIdAndName, getDefaultConfig } = require('./config')
 const { checkUserExistByEmail, users } = require('./user')
+const { execTx, getBalance } = require('./transaction')
+
 initializePassport(
   passport, 
   email => users.find(user => user.email === email),
@@ -93,6 +95,41 @@ app.post('/login', async (req, res)=> {
     })
   }
 })
+
+app.post('/txAction/:txActionName', async (req, res) => {
+  const txActionName = req.params.txActionName;
+  const defaultConfig = getDefaultConfig();
+
+  try {
+    const response = await execTx({
+      body: req.body,
+      txActionName,
+      apiKey: defaultConfig.dapp.apiKey,
+    });
+
+    res.send(response);
+  } catch(e) {
+    res.status(400).send(`${txActionName} failed`);
+  }
+});
+
+app.get('/getBalance/:userAddress', async (req, res) => {
+  const userAddress = req.params.userAddress;
+  const defaultConfig = getDefaultConfig();
+
+  try {
+    const response = await getBalance({
+      mtSymbol: defaultConfig.mt.symbol,
+      stSymbol: defaultConfig.st.symbol,
+      apiKey: defaultConfig.dapp.apiKey,
+      userAddress,
+    });
+
+    res.send(response);
+  } catch(e) {
+    res.status(400).send(`getBalanceOf ${userAddress} failed`);
+  }
+});
 
 app.listen(3000, () => {
   console.log(`http://localhost:3000`);

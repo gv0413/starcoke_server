@@ -1,30 +1,33 @@
 const request = require('async-request')
 
+const defaultConfig = {
+  chainId: '5300575914426995782',
+  mt: {
+    symbol: 'FT9754',
+  },
+  st: {
+    symbol: 'DST01',
+  },
+  walletAddress: {
+    pd: '0x773f69537fd1a47fdd9adae3a1181daaa4d3b168',
+    user: ''
+  },
+  dapp: {
+    apiKey: 'G2auRtGRzre2GoXXGZLYzZqawfLfBi2Prn9miWW65iRQTyLe9ASeicUYwbKVD416'
+  },
+  txActionName: {
+    like: 'like',
+    funding: 'funding',
+    purchase: 'purchase',
+    getOwner: 'getOwner',
+    setOwner: 'setOwner'
+  },
+  userName: '',
+};
+
 const getConfigByIdAndName = async (index, name) => {
-  const defaultConfig = {
-    chainId: '5300575914426995782',
-    mt: {
-      symbol: 'FT9754',
-    },
-    st: {
-      symbol: 'DST01',
-    },
-    walletAddress: {
-      pd: '0x773f69537fd1a47fdd9adae3a1181daaa4d3b168',
-      user: ''
-    },
-    dapp: {
-      apiKey: 'G2auRtGRzre2GoXXGZLYzZqawfLfBi2Prn9miWW65iRQTyLe9ASeicUYwbKVD416'
-    },
-    txActionName: {
-      like: 'like',
-      funding: 'funding',
-      purchase: 'purchase',
-      getOwner: 'getOwner',
-      setOwner: 'setOwner'
-    },
-    userName: name,
-  }
+  const tmpConfig = defaultConfig;
+  tmpConfig.userName = name;
   // 추가 유저가 필요한 경우 아래 리스트에 원소 추가
   const dynamicConfig = [
     '0x3e877a621a56d7785f3525f542f1adc5dcaeb3c2',
@@ -44,7 +47,7 @@ const getConfigByIdAndName = async (index, name) => {
           userKey: index,
         },
         headers: {
-          Authorization: `Bearer ${defaultConfig.dapp.apiKey}`,
+          Authorization: `Bearer ${tmpConfig.dapp.apiKey}`,
           'Content-Type': 'application/json',
         },
       });
@@ -58,11 +61,16 @@ const getConfigByIdAndName = async (index, name) => {
       throw e;
     }
   }
-  defaultConfig.walletAddress.user = dynamicConfig[configIndex];
+  tmpConfig.walletAddress.user = dynamicConfig[configIndex];
 
-  return defaultConfig;
+  return tmpConfig;
 };
+
+const getDefaultConfig = () => {
+  return defaultConfig;
+}
 
 module.exports = {
   getConfigByIdAndName,
+  getDefaultConfig,
 }

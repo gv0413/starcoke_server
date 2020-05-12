@@ -25,43 +25,31 @@ const defaultConfig = {
   userName: '',
 };
 
-const getConfigByIdAndName = async (index, name) => {
+const getConfigByEmailAndName = async (email, name) => {
   const tmpConfig = defaultConfig;
   tmpConfig.userName = name;
-  // 추가 유저가 필요한 경우 아래 리스트에 원소 추가
-  const dynamicConfig = [
-    '0x3e877a621a56d7785f3525f542f1adc5dcaeb3c2',
-    '0x5c2b51025301da8893c3fbb0075ac42756f83273',
-    '0x7b2f92579cd00657e929bee55822780d3e5fd39d',
-  ];
 
-  let configIndex = index;
+  // API Call and push dynamicConfig
+  try {
+    const response = await request('https://api.luniverse.io/tx/v1.1/wallets', {
+      method: 'POST',
+      data: {
+        walletType: 'LUNIVERSE',
+        userKey: email,
+      },
+      headers: {
+        Authorization: `Bearer ${tmpConfig.dapp.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
 
-   if (index >= dynamicConfig.length) {
-    // API Call and push dynamicConfig
-    try {
-      const response = await request('https://api.luniverse.io/tx/v1.1/wallets', {
-        method: 'POST',
-        data: {
-          walletType: 'LUNIVERSE',
-          userKey: index,
-        },
-        headers: {
-          Authorization: `Bearer ${tmpConfig.dapp.apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      });
+    const body = JSON.parse(response.body);
+    const userWallet = body.data.address;
 
-      const body = JSON.parse(response.body);
-      const userWallet = body.data.address;
-
-      dynamicConfig.push(userWallet);
-      configIndex = dynamicConfig.length - 1;
-    } catch (e) {
-      throw e;
-    }
+    tmpConfig.walletAddress.user = userWallet;
+  } catch (e) {
+    throw e;
   }
-  tmpConfig.walletAddress.user = dynamicConfig[configIndex];
 
   return tmpConfig;
 };
@@ -71,6 +59,6 @@ const getDefaultConfig = () => {
 }
 
 module.exports = {
-  getConfigByIdAndName,
+  getConfigByEmailAndName,
   getDefaultConfig,
 }

@@ -4,7 +4,7 @@ const express = require('express')
 const app = express()
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken');
-const { getConfigByIdAndName, getDefaultConfig } = require('./config')
+const { getConfigByEmailAndName, getDefaultConfig } = require('./config')
 const { checkUserExistByEmail, users } = require('./user')
 const { execTx, getBalance } = require('./transaction')
 
@@ -46,7 +46,7 @@ app.post('/login', async (req, res)=> {
   if( user && await bcrypt.compare(req.body.password, user.password)){
     // create user config
     try {
-      const userConfig = await getConfigByIdAndName(user.id, user.name);
+      const userConfig = await getConfigByEmailAndName(user.email, user.name);
       // create jwt token
       const token = jwt.sign({
         email: user.email,
